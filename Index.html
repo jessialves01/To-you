@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Kris - Cosmic Eye 🌌</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #030712;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Conteúdo final que aparece após o zoom do coração */
+        .final-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .final-content.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        h1 {
+            color: #facc15;
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 20px rgba(250, 204, 21, 0.8);
+            letter-spacing: 2px;
+        }
+
+        p.quote {
+            color: #e2e8f0;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+            background: rgba(8, 15, 30, 0.85);
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .btn-surprise {
+            background: linear-gradient(135deg, #facc15, #d97706);
+            color: #030712;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: 0 4px 20px rgba(250, 204, 21, 0.5);
+            transition: transform 0.2s;
+        }
+        .btn-surprise:active { transform: scale(0.95); }
+
+        /* Modal Secreta */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 7, 18, 0.9);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+        .modal-box {
+            background: #0f172a;
+            border: 2px solid #facc15;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 320px;
+            box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
+        }
+        .modal-box p {
+            color: #f8fafc;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            background: #facc15;
+            color: #030712;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="eyeCanvas"></canvas>
+
+    <div class="final-content" id="finalContent">
+        <h1>FOR KRIS 🌌</h1>
+        <p class="quote">"May the stars light up your path wherever you go." ✨</p>
+        <button class="btn-surprise" onclick="openModal()">Click for a secret 💫</button>
+    </div>
+
+    <!-- Modal Secreta -->
+    <div id="secretModal" class="modal">
+        <div class="modal-box">
+            <p>They say stars shine brighter when you're around the right person... 💫<br><br>*(Compiled specially for you!)*</p>
+            <button class="close-btn" onclick="closeModal()">Close 💙</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('eyeCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let phase = 0; // 0: formando olho, 1: piscando, 2: zoom na pupila, 3: coração crescendo, 4: fim
+        let zoom = 1;
+        let blinkScale = 1;
+        let timer = 0;
+        let alphaFinal = 0;
+
+        function animate() {
+            ctx.fillStyle = '#030712';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(zoom, zoom);
+
+            timer += 0.03;
+
+            // Desenhar fundo de estrelas cósmicas
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+            for (let i = 0; i < 50; i++) {
+                let x = (Math.sin(i * 99) * canvas.width * 0.8);
+                let y = (Math.cos(i * 33) * canvas.height * 0.8);
+                ctx.fillRect(x, y, 2, 2);
+            }
+
+            if (timer > 2 && timer < 4) {
+                // Fase de piscar o olho
+                if (timer > 3 && timer < 3.3) blinkScale = 0.1;
+                else blinkScale = 1;
+            }
+
+            if (timer > 4.5) {
+                // Fase de Zoom na Pupila
+                zoom += 0.03;
+            }
+
+            // Desenhar o Olho (formado por letras e linhas estelares)
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.save();
+            ctx.scale(1, blinkScale);
+
+            // Contorno do Olho (Amígdala)
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 140, 70 * blinkScale, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Íris
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath();
+            ctx.arc(0, 0, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#60a5fa';
+            ctx.stroke();
+
+            // Pupila
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Se o zoom avançar, revela o Coração dentro da pupila
+            if (zoom > 2.5) {
+                ctx.save();
+                let heartScale = Math.min((zoom - 2.5) * 2, 15);
+                ctx.scale(heartScale, heartScale);
+                
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath();
+                let topCurveHeight = -10;
+                ctx.moveTo(0, topCurveHeight);
+                // Desenhar forma de coração
+                ctx.bezierCurveTo(15, -25, 30, -5, 0, 20);
+                ctx.bezierCurveTo(-30, -5, -15, -25, 0, topCurveHeight);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore();
+
+            // Mostrar conteúdo final após o zoom completo
+            if (zoom > 6 && document.getElementById('finalContent').style.opacity == 0) {
+                document.getElementById('finalContent').classList.add('visible');
+            }
+
+            if (zoom < 10) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        animate();
+
+        // Funções da Modal
+        function openModal() {
+            const modal = document.getElementById('secretModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('secretModal');
+            if (modal) modal.style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
