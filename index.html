@@ -28,7 +28,7 @@
             z-index: 1;
         }
 
-        /* Conteúdo final que surge após o zoom no coração */
+        /* Conteúdo final que surge após o zoom */
         .final-content {
             position: relative;
             z-index: 2;
@@ -181,30 +181,37 @@
                 zoom += 0.025;
             }
 
-            // Desenhar o Olho Cósmico
+            // Desenhar o contorno do Olho
             ctx.strokeStyle = '#38bdf8';
             ctx.lineWidth = 3;
-            
-            // Contorno do olho
             ctx.beginPath();
             ctx.ellipse(0, 0, 130, 65 * blink, 0, 0, Math.PI * 2);
             ctx.fillStyle = '#0b132b';
             ctx.fill();
             ctx.stroke();
 
-            // Íris em tons de azul e dourado
-            ctx.fillStyle = '#1d4ed8';
+            // Íris Externa (Verde-claro vibrante)
+            ctx.fillStyle = '#4ade80';
             ctx.beginPath();
-            ctx.arc(0, 0, 45, 0, Math.PI * 2);
+            ctx.arc(0, 0, 50, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = '#facc15';
+            ctx.strokeStyle = '#166534';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Pupila preta
+            // Heterocromatina Central (Cast hermoso ao redor da pupila)
+            ctx.fillStyle = '#854d0e';
+            ctx.beginPath();
+            ctx.arc(0, 0, 26, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#a16207';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Pupila preta central
             ctx.fillStyle = '#000000';
             ctx.beginPath();
-            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.fill();
 
             // Se o zoom entrar na pupila, o coração surge lá dentro e cresce
