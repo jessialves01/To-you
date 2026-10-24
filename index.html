@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>For Kris - Cosmic Eye 🌌</title>
+    <title>For Kris - Realistic Eye 🌌</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #030712;
+            background-color: #020617;
             overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -28,7 +28,7 @@
             z-index: 1;
         }
 
-        /* Conteúdo final que surge após o zoom */
+        /* Cartão final que aparece após o zoom */
         .final-content {
             position: relative;
             z-index: 2;
@@ -42,11 +42,11 @@
             justify-content: center;
             width: 85%;
             max-width: 380px;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             border: 2px solid #facc15;
             padding: 25px 20px;
             border-radius: 16px;
-            box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
+            box-shadow: 0 0 50px rgba(250, 204, 21, 0.4);
         }
 
         .final-content.visible {
@@ -91,7 +91,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 7, 18, 0.9);
+            background: rgba(3, 7, 18, 0.92);
             justify-content: center;
             align-items: center;
             padding: 20px;
@@ -127,7 +127,7 @@
 </head>
 <body>
 
-    <canvas id="eyeCanvas"></canvas>
+    <canvas id="realisticEyeCanvas"></canvas>
 
     <div class="final-content" id="finalContent">
         <h1>FOR KRIS 🌌</h1>
@@ -144,7 +144,7 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('eyeCanvas');
+        const canvas = document.getElementById('realisticEyeCanvas');
         const ctx = canvas.getContext('2d');
 
         function resize() {
@@ -156,11 +156,11 @@
 
         let zoom = 1;
         let timer = 0;
-        let blink = 1;
+        let blinkProgress = 1; // 1 = aberto, 0 = fechado
         let heartAlpha = 0;
 
         function animate() {
-            ctx.fillStyle = '#030712';
+            ctx.fillStyle = '#020617';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
@@ -169,75 +169,151 @@
 
             timer += 0.025;
 
-            // Piscar o olho nos primeiros segundos
-            if (timer > 1.8 && timer < 2.2) {
-                blink = 0.15;
+            // Piscar natural nos primeiros segundos
+            if (timer > 1.5 && timer < 1.9) {
+                blinkProgress = 0.05; // fechado
+            } else if (timer >= 1.9 && timer < 2.3) {
+                blinkProgress = (timer - 1.9) / 0.4; // a abrir
             } else {
-                blink = 1;
+                blinkProgress = 1;
             }
 
-            // Iniciar zoom progressivo em direcção à pupila
-            if (timer > 3.5) {
-                zoom += 0.025;
+            // Iniciar zoom progressivo em direção à pupila após o piscar
+            if (timer > 3.2) {
+                zoom += 0.03;
             }
 
-            // Desenhar o contorno do Olho
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 130, 65 * blink, 0, 0, Math.PI * 2);
-            ctx.fillStyle = '#0b132b';
-            ctx.fill();
-            ctx.stroke();
+            const eyeWidth = 170;
+            const eyeHeight = 85 * blinkProgress;
 
-            // Íris Externa (Verde-claro vibrante)
-            ctx.fillStyle = '#4ade80';
+            // Fundo da esclera (branco do olho com sombra realista)
+            ctx.save();
             ctx.beginPath();
-            ctx.arc(0, 0, 50, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#f8fafc';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 30;
             ctx.fill();
-            ctx.strokeStyle = '#166534';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.restore();
 
-            // Heterocromatina Central (Cast hermoso ao redor da pupila)
-            ctx.fillStyle = '#854d0e';
-            ctx.beginPath();
-            ctx.arc(0, 0, 26, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#a16207';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Pupila preta central
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.arc(0, 0, 14, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Se o zoom entrar na pupila, o coração surge lá dentro e cresce
-            if (zoom > 2.2) {
-                heartAlpha = Math.min(heartAlpha + 0.05, 1);
+            // Íris e detalhes se o olho não estiver totalmente fechado
+            if (blinkProgress > 0.1) {
                 ctx.save();
-                ctx.globalAlpha = heartAlpha;
-                ctx.fillStyle = '#facc15';
-                
-                // Desenhar o coração dentro da pupila
                 ctx.beginPath();
-                let scaleH = Math.min((zoom - 2.2) * 1.5, 12);
-                ctx.scale(scaleH, scaleH);
-                ctx.moveTo(0, -2);
-                ctx.bezierCurveTo(4, -8, 10, -2, 0, 8);
-                ctx.bezierCurveTo(-10, -2, -4, -8, 0, -2);
+                ctx.ellipse(0, 0, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
+                ctx.clip(); // Mantém tudo dentro do formato do olho
+
+                const irisRadius = 65;
+
+                // 1. Íris Externa (Verde-claro realista com gradiente)
+                let irisGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, irisRadius);
+                irisGrad.addColorStop(0, '#86efac');
+                irisGrad.addColorStop(0.5, '#4ade80');
+                irisGrad.addColorStop(0.9, '#15803d');
+                irisGrad.addColorStop(1, '#052e16');
+                
+                ctx.fillStyle = irisGrad;
+                ctx.beginPath();
+                ctx.arc(0, 0, irisRadius, 0, Math.PI * 2);
                 ctx.fill();
+
+                // Fibras radiais da íris para dar textura real
+                ctx.strokeStyle = 'rgba(20, 83, 45, 0.35)';
+                ctx.lineWidth = 1.2;
+                for (let i = 0; i < 60; i++) {
+                    let angle = (i * Math.PI * 2) / 60;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * 18, Math.sin(angle) * 18);
+                    ctx.lineTo(Math.cos(angle) * irisRadius, Math.sin(angle) * irisRadius);
+                    ctx.stroke();
+                }
+
+                // Anel limbar escuro na borda da íris
+                ctx.strokeStyle = '#022c22';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(0, 0, irisRadius - 1, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // 2. Heterocromatina Central (Castanho orgânico ao redor da pupila)
+                let heteroRadius = 28;
+                let heteroGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, heteroRadius);
+                heteroGrad.addColorStop(0, '#78350f');
+                heteroGrad.addColorStop(0.6, '#92400e');
+                heteroGrad.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = heteroGrad;
+                ctx.beginPath();
+                ctx.arc(0, 0, heteroRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Detalhes irregulares da heterocromatina castanha
+                ctx.strokeStyle = 'rgba(60, 25, 5, 0.6)';
+                ctx.lineWidth = 1.5;
+                for (let j = 0; j < 16; j++) {
+                    let hAngle = (j * Math.PI * 2) / 16;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(hAngle) * (heteroRadius + Math.random() * 5), Math.sin(hAngle) * (heteroRadius + Math.random() * 5));
+                    ctx.stroke();
+                }
+
+                // 3. Pupila Negra com profundidade
+                const pupilRadius = 14;
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(0, 0, pupilRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Se o zoom entrar na pupila, o coração dourado surge lá dentro e cresce
+                if (zoom > 2.0) {
+                    heartAlpha = Math.min(heartAlpha + 0.05, 1);
+                    ctx.save();
+                    ctx.globalAlpha = heartAlpha;
+                    ctx.fillStyle = '#facc15';
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.shadowBlur = 15;
+                    
+                    ctx.beginPath();
+                    let scaleH = Math.min((zoom - 2.0) * 1.8, 14);
+                    ctx.scale(scaleH, scaleH);
+                    ctx.moveTo(0, -2);
+                    ctx.bezierCurveTo(4, -8, 10, -2, 0, 8);
+                    ctx.bezierCurveTo(-10, -2, -4, -8, 0, -2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 4. Reflexo de Luz / Brilho Húmido da Córnea (Specular Highlights)
+                let glossGrad = ctx.createRadialGradient(-20, -25, 2, -20, -25, 25);
+                glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+                glossGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = glossGrad;
+                ctx.beginPath();
+                ctx.arc(-20, -25, 25, 0, Math.PI * 2);
+                ctx.fill();
+
                 ctx.restore();
             }
 
+            // Pálpebras superior e inferior (efeito realista de contorno e pestanas)
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 4;
+            // Pálpebra superior
+            ctx.beginPath();
+            ctx.arc(0, -eyeHeight - 15, eyeWidth * 1.1, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            // Pálpebra inferior
+            ctx.beginPath();
+            ctx.arc(0, eyeHeight + 15, eyeWidth * 1.1, Math.PI + 0.2, 2 * Math.PI - 0.2);
+            ctx.stroke();
+
             ctx.restore();
 
-            // Revelar o cartão final assim que o zoom avança
-            if (zoom > 5.5) {
+            // Revelar o cartão final assim que o zoom avança para dentro da pupila
+            if (zoom > 5.0) {
                 const finalCard = document.getElementById('finalContent');
-                if (!finalCard.classList.contains('visible')) {
+                if (finalCard && !finalCard.classList.contains('visible')) {
                     finalCard.classList.add('visible');
                 }
             }
