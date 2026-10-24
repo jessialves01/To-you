@@ -3,65 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>For Kris 🌌</title>
+    <title>For Kris - Cosmic Eye 🌌</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            background: radial-gradient(circle at center, #0c1c38 0%, #030712 100%);
-            color: #fff;
+            width: 100%;
+            height: 100%;
+            background-color: #030712;
+            overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-            text-align: center;
         }
 
-        /* Fundo com efeito estelar elegante */
-        .stars-bg {
+        canvas {
             position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-image: radial-gradient(#facc15 1px, transparent 1px);
-            background-size: 35px 35px;
-            opacity: 0.25;
             z-index: 1;
         }
 
-        /* Cartão principal com cara de programadora/terminal */
-        .card {
+        /* Conteúdo final que surge após o zoom no coração */
+        .final-content {
             position: relative;
             z-index: 2;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 85%;
+            max-width: 380px;
             background: rgba(15, 23, 42, 0.85);
             border: 2px solid #facc15;
+            padding: 25px 20px;
             border-radius: 16px;
-            padding: 30px 20px;
-            max-width: 320px;
-            width: 85%;
-            box-shadow: 0 0 35px rgba(250, 204, 21, 0.35);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
+        }
+
+        .final-content.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         h1 {
             color: #facc15;
             font-size: 1.6rem;
-            margin-top: 0;
-            margin-bottom: 15px;
-            text-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 15px rgba(250, 204, 21, 0.8);
             letter-spacing: 2px;
         }
 
-        p {
+        p.quote {
             color: #e2e8f0;
             font-size: 0.95rem;
             line-height: 1.5;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         }
 
-        .btn {
+        .btn-surprise {
             background: linear-gradient(135deg, #facc15, #d97706);
             color: #030712;
             border: none;
@@ -70,43 +79,40 @@
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
-            width: 100%;
             font-family: 'Courier New', Courier, monospace;
             box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+            width: 100%;
             transition: transform 0.2s;
         }
-        .btn:active { transform: scale(0.96); }
+        .btn-surprise:active { transform: scale(0.96); }
 
-        /* Modal da Mensagem Secreta */
+        /* Modal Secreta */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(3, 7, 18, 0.9);
-            z-index: 10;
             justify-content: center;
             align-items: center;
             padding: 20px;
             box-sizing: border-box;
+            z-index: 10;
         }
-
-        .modal-content {
+        .modal-box {
             background: #0f172a;
             border: 2px solid #facc15;
             padding: 25px;
-            border-radius: 14px;
+            border-radius: 15px;
             text-align: center;
             max-width: 300px;
-            box-shadow: 0 0 30px rgba(250, 204, 21, 0.4);
+            box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
         }
-
-        .modal-content p {
+        .modal-box p {
             color: #f8fafc;
             font-size: 1rem;
             line-height: 1.6;
             margin-bottom: 20px;
         }
-
         .close-btn {
             background: #facc15;
             color: #030712;
@@ -121,29 +127,130 @@
 </head>
 <body>
 
-    <div class="stars-bg"></div>
+    <canvas id="eyeCanvas"></canvas>
 
-    <div class="card">
+    <div class="final-content" id="finalContent">
         <h1>FOR KRIS 🌌</h1>
-        <p>May the stars light up your path wherever you go. ✨</p>
-        <button class="btn" onclick="openModal()">Click for a secret 💫</button>
+        <p class="quote">May the stars light up your path wherever you go. ✨</p>
+        <button class="btn-surprise" onclick="openModal()">Click for a secret 💫</button>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal Secreta -->
     <div id="secretModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-box">
             <p>They say stars shine brighter when you're around the right person... 💫<br><br>*(Compiled specially for you!)*</p>
             <button class="close-btn" onclick="closeModal()">Close 💙</button>
         </div>
     </div>
 
     <script>
+        const canvas = document.getElementById('eyeCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let zoom = 1;
+        let timer = 0;
+        let blink = 1;
+        let heartAlpha = 0;
+
+        function animate() {
+            ctx.fillStyle = '#030712';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(zoom, zoom);
+
+            timer += 0.025;
+
+            // Piscar o olho nos primeiros segundos
+            if (timer > 1.8 && timer < 2.2) {
+                blink = 0.15;
+            } else {
+                blink = 1;
+            }
+
+            // Iniciar zoom progressivo em direcção à pupila
+            if (timer > 3.5) {
+                zoom += 0.025;
+            }
+
+            // Desenhar o Olho Cósmico
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            
+            // Contorno do olho
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 130, 65 * blink, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#0b132b';
+            ctx.fill();
+            ctx.stroke();
+
+            // Íris em tons de azul e dourado
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath();
+            ctx.arc(0, 0, 45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Pupila preta
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Se o zoom entrar na pupila, o coração surge lá dentro e cresce
+            if (zoom > 2.2) {
+                heartAlpha = Math.min(heartAlpha + 0.05, 1);
+                ctx.save();
+                ctx.globalAlpha = heartAlpha;
+                ctx.fillStyle = '#facc15';
+                
+                // Desenhar o coração dentro da pupila
+                ctx.beginPath();
+                let scaleH = Math.min((zoom - 2.2) * 1.5, 12);
+                ctx.scale(scaleH, scaleH);
+                ctx.moveTo(0, -2);
+                ctx.bezierCurveTo(4, -8, 10, -2, 0, 8);
+                ctx.bezierCurveTo(-10, -2, -4, -8, 0, -2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore();
+
+            // Revelar o cartão final assim que o zoom avança
+            if (zoom > 5.5) {
+                const finalCard = document.getElementById('finalContent');
+                if (!finalCard.classList.contains('visible')) {
+                    finalCard.classList.add('visible');
+                }
+            }
+
+            if (zoom < 8) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        animate();
+
+        // Funções da modal
         function openModal() {
-            document.getElementById('secretModal').style.display = 'flex';
+            const modal = document.getElementById('secretModal');
+            if (modal) modal.style.display = 'flex';
         }
 
         function closeModal() {
-            document.getElementById('secretModal').style.display = 'none';
+            const modal = document.getElementById('secretModal');
+            if (modal) modal.style.display = 'none';
         }
     </script>
 
